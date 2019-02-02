@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>Sanatana.EntityFramework.Batch</id>
+    <version>$version$</version>
+    <authors>Sanatana</authors>
+    <owners>Sanatana</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Merge and batch Insert, Update, Delete operations for EntityFramework 6</description>
+	  <licenseUrl>https://github.com/RodionKulin/Sanatana.EntityFramework.Batch/blob/master/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/RodionKulin/Sanatana.EntityFramework.Batch</projectUrl>
+    <tags>EntityFramework EF MSSQL Merge Batch</tags>
+    <copyright>Copyright ©2014 RodionKulin</copyright>
+
+    <dependencies>
+      <dependency id="EntityFramework" version="6.2.0" />
+    </dependencies>   
+  </metadata>
+  <files>
+    <file src="bin\release\Sanatana.EntityFramework.Batch.dll" target="lib\net461\" />
+  </files>
+</package>

@@ -1,0 +1,113 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{EE8E634F-C276-487B-9C89-58D57BE98205}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Sanatana.EntityFramework.Batch</RootNamespace>
+    <AssemblyName>Sanatana.EntityFramework.Batch</AssemblyName>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <SccProjectName>SAK</SccProjectName>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccProvider>SAK</SccProvider>
+    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\..\AlarmoBot\trunk\</SolutionDir>
+    <RestorePackages>true</RestorePackages>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\packages\EntityFramework.6.2.0\lib\net45\EntityFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Transactions" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ColumnMapping\MappingComponent.cs" />
+    <Compile Include="Commands\DeleteCommand.cs" />
+    <Compile Include="Expressions\Visitors\SwapVisitor.cs" />
+    <Compile Include="Extensions\DbQueryExtension.cs" />
+    <Compile Include="ChangeNotifier\EntityChangeEventArgs.cs" />
+    <Compile Include="ChangeNotifier\EntityChangeNotifier.cs" />
+    <Compile Include="ChangeNotifier\NotifierErrorEventArgs.cs" />
+    <Compile Include="Extensions\LinqExtensions.cs" />
+    <Compile Include="Expressions\Visitors\ParameterReplacer.cs" />
+    <Compile Include="ColumnMapping\MappedProperty.cs" />
+    <Compile Include="ColumnMapping\MappedPropertyUtility.cs" />
+    <Compile Include="Commands\InsertCommand.cs" />
+    <Compile Include="Commands\RepositoryResult%271.cs" />
+    <Compile Include="Commands\UpdateCommand.cs" />
+    <Compile Include="Scripts\ScriptManager\LoadType.cs" />
+    <Compile Include="Scripts\ScriptManager\ScriptManager.cs" />
+    <Compile Include="Scripts\ScriptManager\SqlObjectType.cs" />
+    <Compile Include="Commands\Merge\Parts\MergeInsertPart.cs" />
+    <Compile Include="Commands\Merge\Parts\MergeUpdatePart.cs" />
+    <Compile Include="Expressions\AssignLambdaExpression.cs" />
+    <Compile Include="Commands\Merge\Parts\MergeComparePart.cs" />
+    <Compile Include="Expressions\ExpressionsToMSSql.cs" />
+    <Compile Include="ColumnMapping\MappingComponentBase.cs" />
+    <Compile Include="Expressions\ExpressionContext.cs" />
+    <Compile Include="Reflection\PropertyReflectionOptions.cs" />
+    <Compile Include="Extensions\DbContextExtensions.cs" />
+    <Compile Include="Commands\Repository.cs" />
+    <Compile Include="Commands\Merge\MergeType.cs" />
+    <Compile Include="Commands\Merge\MergeCommand.cs" />
+    <Compile Include="Extensions\TransactionExtensions.cs" />
+    <Compile Include="Scripts\ScriptExtractor.cs" />
+    <Compile Include="SqlConnetionSettings.cs" />
+    <Compile Include="SqlUtility.cs" />
+    <Compile Include="Reflection\ReflectionUtility.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Scripts\ScriptInitializer.cs" />
+    <Compile Include="Scripts\ScriptManager\SqlScript.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config">
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="Sanatana.EntityFramework.Batch.nuspec" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
+  <!--<Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />
+  </Target>-->
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
