@@ -18,5 +18,6 @@
   </metadata>
   <files>
     <file src="bin\release\Sanatana.EntityFramework.Batch.dll" target="lib\net461\" />
+    <file src="bin\release\Sanatana.EntityFramework.Batch.xml" target="lib\net461\" />
   </files>
 </package>

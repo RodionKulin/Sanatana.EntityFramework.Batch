@@ -27,7 +27,7 @@ namespace Sanatana.EntityFramework.Batch.Commands.Merge
 
         //methods
         /// <summary>
-        /// Expression to compare properties from Target and Source tables. Example (t, s) => t.IntProperty == s.OtherIntProperty или (t, s) => t.IntProperty == 5
+        /// Expression to compare properties from Target and Source tables. Example (t, s) => t.IntProperty == s.OtherIntProperty or (t, s) => t.IntProperty == 5
         /// where t - target table, s - source table.
         /// </summary>
         /// <typeparam name="TKey"></typeparam>

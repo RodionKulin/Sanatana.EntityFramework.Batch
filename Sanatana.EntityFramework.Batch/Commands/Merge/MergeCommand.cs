@@ -33,14 +33,51 @@ namespace Sanatana.EntityFramework.Batch.Commands.Merge
 
 
         //properties
+        /// <summary>
+        /// Type of the Table Valued Parameter that is expected to be already created on SQL server before executing merge, describing order or Source columns. 
+        /// Required when using merge constructor with TVP, not required if using SqlParameters constructor.
+        /// </summary>
         public string SqlTVPTypeName { get; set; }
+        /// <summary>
+        /// Name of the Table Valued Parameter that defaults to @Table. This can be any string.
+        /// Required when using merge constructor with TVP, not required if using SqlParameters constructor.
+        /// </summary>
         public string SqlTVPParameterName { get; set; }
+        /// <summary>
+        /// Target table name taken from EntityFramework settings by default. Can be changed manually.
+        /// </summary>
         public string TableName { get; set; }
+        /// <summary>
+        /// List of columns to include as parameters to the query from provided Source entities.        /// 
+        /// All properties are included by default.
+        /// </summary>
         public MappingComponent<TEntity> Source { get; protected set; }
+        /// <summary>
+        /// List of columns used to match Target table rows to Source rows.
+        /// All properties are excluded by default.
+        /// </summary>
         public MergeComparePart<TEntity> Compare { get; protected set; }
-        public MergeUpdatePart<TEntity> Update { get; protected set; }
+        /// <summary>
+        /// List of columns to update on Target table for rows that did match Source rows if Update or Upsert type of merge is executed.
+        /// All properties are included by default.
+        /// </summary>
+        public MergeUpdatePart<TEntity> UpdateMatched { get; protected set; }
+        /// <summary>
+        /// List of columns to update on Target table for rows that did not match Source rows if Update type of merge is executed.
+        /// All properties are excluded by default.
+        /// </summary>
         public MergeUpdatePart<TEntity> UpdateNotMatched { get; protected set; }
+        /// <summary>
+        /// List of columns to insert if Insert of Upsert type of merge is executed.
+        /// All properties are included by default.
+        /// </summary>
         public MergeInsertPart<TEntity> Insert { get; protected set; }
+        /// <summary>
+        /// List of columns to return for inserted rows. 
+        /// Include columns that are generated on database side, like auto increment field.
+        /// Returned values will be set on provided entities properties.
+        /// All properties are excluded by default.
+        /// </summary>
         public MappingComponent<TEntity> Output { get; protected set; }
 
 
@@ -61,7 +98,7 @@ namespace Sanatana.EntityFramework.Batch.Commands.Merge
             {
                 ExcludeAllByDefault = true
             };
-            Update = new MergeUpdatePart<TEntity>(_entityProperties, _mergePropertyUtility);
+            UpdateMatched = new MergeUpdatePart<TEntity>(_entityProperties, _mergePropertyUtility);
             UpdateNotMatched = new MergeUpdatePart<TEntity>(_entityProperties, _mergePropertyUtility)
             {
                 ExcludeAllByDefault = true
@@ -275,9 +312,9 @@ namespace Sanatana.EntityFramework.Batch.Commands.Merge
             List<string> columnNameList = Source.GetSelectedFlat()
                 .Select(x => x.EfMappedName)
                 .ToList();
-            columnNameList.Insert(0, SOURCE_ID_COLUMN_NAME);    //row id to match output
-            string columnNameString = string.Join(",", columnNameList);
-            sql.AppendFormat(") AS {0} ({1})", _sourceAlias, columnNameString);
+            columnNameList.Insert(0, SOURCE_ID_COLUMN_NAME);    //row id to match command outputs to input entities
+            string columnNamesString = string.Join(",", columnNameList);
+            sql.AppendFormat(") AS {0} ({1})", _sourceAlias, columnNamesString);
 
             return sql;
         }
@@ -351,11 +388,11 @@ namespace Sanatana.EntityFramework.Batch.Commands.Merge
 
         protected virtual void ConstructUpdate(StringBuilder sql)
         {
-            List<string> stringParts = Update.GetSelectedFlat()
+            List<string> stringParts = UpdateMatched.GetSelectedFlat()
                 .Select(c => string.Format("[{0}].[{1}]=[{2}].[{1}]", _targetAlias, c.EfMappedName, _sourceAlias))
                 .ToList();
 
-            foreach (Expression item in Update.Expressions)
+            foreach (Expression item in UpdateMatched.Expressions)
             {
                 string expressionSql = item.ToMSSqlString(_context);
                 stringParts.Add(expressionSql);

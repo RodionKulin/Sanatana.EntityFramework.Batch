@@ -83,7 +83,6 @@
     <Compile Include="Samples\TestInitializerDbContext.cs" />
     <Compile Include="Tests\ExpressionsToMSSqlSpecs.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Tests\ScriptableInitializeSpecs.cs" />
     <Compile Include="Tests\RepositorySpecs.cs" />
     <Compile Include="Samples\Entities\EmbeddedEntity.cs" />
     <Compile Include="Samples\Entities\GenericDerivedEntity.cs" />
@@ -94,6 +93,7 @@
     <Compile Include="Samples\Entities\SampleEntity.cs" />
     <Compile Include="Samples\SampleDbContext.cs" />
     <Compile Include="Tests\ReflectionUtilitySpecs.cs" />
+    <Compile Include="Tests\ScriptInitializerSpecs.cs" />
     <Compile Include="Tests\TableExtensionsSpecs.cs" />
     <Compile Include="TestTools\Interfaces\INeedSampleDatabase.cs" />
     <Compile Include="TestTools\Providers\SampleDbContextProvider.cs" />
