@@ -1,4 +1,4 @@
-﻿using Sanatana.EntityFramework.Batch.Commands.Tests.Samples;
+﻿using Sanatana.EntityFramework.BatchSpecs.Samples;
 using SpecsFor;
 using System;
 using System.Collections.Generic;

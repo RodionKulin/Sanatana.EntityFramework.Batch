@@ -34,10 +34,14 @@ namespace Sanatana.EntityFramework.Batch.Commands
             MappedPropertyUtility mappedPropertyUtility = new MappedPropertyUtility(context, entityType);
             List<MappedProperty> properties = mappedPropertyUtility.GetAllEntityProperties();
 
-            Insert = new MappingComponent<TEntity>(properties, mappedPropertyUtility);
+            Insert = new MappingComponent<TEntity>(properties, mappedPropertyUtility)
+            {
+                IncludeGeneratedProperties = IncludeDbGeneratedProperties.ExcludeByDefault
+            };
             Output = new MappingComponent<TEntity>(properties, mappedPropertyUtility)
             {
-                ExcludeAllByDefault = true
+                ExcludeAllByDefault = true,
+                IncludeGeneratedProperties = IncludeDbGeneratedProperties.IncludeByDefault
             };
         }
 

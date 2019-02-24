@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Sanatana.EntityFramework.Batch.Commands.Tests.Samples.Entities
+namespace Sanatana.EntityFramework.BatchSpecs.Samples.Entities
 {
     public class GenericEntity<T>
         where T :struct

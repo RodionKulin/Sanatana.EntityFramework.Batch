@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Sanatana.EntityFramework.Batch</RootNamespace>
     <AssemblyName>Sanatana.EntityFramework.Batch</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <SccProjectName>SAK</SccProjectName>
     <SccLocalPath>SAK</SccLocalPath>
@@ -52,6 +52,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ColumnMapping\IncludeDbGeneratedProperties.cs" />
     <Compile Include="ColumnMapping\MappingComponent.cs" />
     <Compile Include="Commands\DeleteCommand.cs" />
     <Compile Include="Expressions\Visitors\SwapVisitor.cs" />

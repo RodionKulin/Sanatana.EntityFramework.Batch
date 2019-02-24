@@ -7,10 +7,10 @@ using System.Threading.Tasks;
 
 namespace Sanatana.EntityFramework.BatchSpecs.Samples.Entities
 {
-    public class ParentEntity
+    public class ConventionKeyDbGenerated
     {
-        public int ParentEntityId { get; set; }
-        public DateTime CreatedTime { get; set; }
-        public EmbeddedEntity Embedded { get; set; }
+        public long Id { get; set; }
+        [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
+        public string SimpleProp { get; set; }
     }
 }

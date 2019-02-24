@@ -1,4 +1,4 @@
-﻿using Sanatana.EntityFramework.Batch.Commands.Tests.Samples;
+﻿using Sanatana.EntityFramework.BatchSpecs.Samples;
 using Sanatana.EntityFramework.BatchSpecs.TestTools.Interfaces;
 using SpecsFor.Configuration;
 using System;
@@ -34,6 +34,8 @@ namespace Sanatana.EntityFramework.BatchSpecs.TestTools.Providers
 
             using (var context = new SampleDbContext())
             {
+                context.Database.Delete();
+
                 context.Database.Initialize(force: true);
             }
 

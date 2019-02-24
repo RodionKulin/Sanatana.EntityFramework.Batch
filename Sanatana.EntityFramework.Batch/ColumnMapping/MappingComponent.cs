@@ -34,5 +34,6 @@ namespace Sanatana.EntityFramework.Batch.ColumnMapping
             _excludePropertyEfDefaultNames.Add(propName);
             return this;
         }
+
     }
 }

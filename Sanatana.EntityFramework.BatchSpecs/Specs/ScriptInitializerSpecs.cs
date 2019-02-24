@@ -1,5 +1,5 @@
 ﻿using NUnit.Framework;
-using Sanatana.EntityFramework.Batch.Commands.Tests.Samples;
+using Sanatana.EntityFramework.BatchSpecs.Samples;
 using Sanatana.EntityFramework.BatchSpecs.TestTools.Interfaces;
 using SpecsFor;
 using System;
@@ -8,9 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Sanatana.EntityFramework.Batch;
-using Sanatana.EntityFramework.Batch.Commands.Tests.Samples.Entities;
 using Sanatana.EntityFramework.Batch.Reflection;
-using Sanatana.EntityFramework.BatchSpecs.Samples;
 using System.IO;
 using Sanatana.EntityFramework.Batch.Scripts;
 using Sanatana.EntityFramework.BatchSpecs.Resources.Scripts;

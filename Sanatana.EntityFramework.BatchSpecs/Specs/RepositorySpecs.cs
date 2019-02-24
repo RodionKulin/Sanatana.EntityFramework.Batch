@@ -1,7 +1,7 @@
 ﻿using Sanatana.EntityFramework.BatchSpecs.TestTools.Interfaces;
 using NUnit.Framework;
 using Sanatana.EntityFramework.Batch.Commands;
-using Sanatana.EntityFramework.Batch.Commands.Tests.Samples;
+using Sanatana.EntityFramework.BatchSpecs.Samples;
 using SpecsFor;
 using System;
 using System.Collections.Generic;
@@ -10,8 +10,8 @@ using System.Text;
 using System.Threading.Tasks;
 using Should;
 using SpecsFor.ShouldExtensions;
-using Sanatana.EntityFramework.Batch.Commands.Tests.Samples.Entities;
 using Sanatana.EntityFramework.Batch.Commands.Merge;
+using Sanatana.EntityFramework.BatchSpecs.Samples.Entities;
 
 namespace Sanatana.EntityFramework.BatchSpecs
 {
@@ -313,68 +313,5 @@ namespace Sanatana.EntityFramework.BatchSpecs
             }
         }
         
-        [TestFixture]
-        public class when_merge_inserting_multiple_entities : SpecsFor<Repository>
-           , INeedSampleDatabase
-        {
-            public SampleDbContext SampleDatabase { get; set; }
-
-            [Test]
-            public void then_it_merge_inserts_multiple_entities()
-            {
-                int insertCount = 15;
-                var entities = new List<SampleEntity>();
-                for (int i = 0; i < 15; i++)
-                {
-                    entities.Add(new SampleEntity
-                    {
-                        GuidNullableProperty = null,
-                        DateProperty = DateTime.UtcNow,
-                        GuidProperty = Guid.NewGuid()
-                    });
-                }
-
-                MergeCommand<SampleEntity> command = SUT.Merge<SampleEntity>(entities);
-                command.Compare.IncludeProperty(x => x.Id);
-                command.Insert.ExcludeProperty(x => x.Id);
-                int changes = command.Execute(MergeType.Insert);
-
-                changes.ShouldEqual(insertCount);
-            }
-        }
-
-        [TestFixture]
-        public class when_merge_inserting_multiple_entities_with_output : SpecsFor<Repository>
-           , INeedSampleDatabase
-        {
-            public SampleDbContext SampleDatabase { get; set; }
-
-            [Test]
-            public void then_it_merge_inserts_multiple_entities_with_output_ids()
-            {
-                int insertCount = 15;
-                var entities = new List<SampleEntity>();
-                for (int i = 0; i < 15; i++)
-                {
-                    entities.Add(new SampleEntity
-                    {
-                        GuidNullableProperty = null,
-                        DateProperty = DateTime.UtcNow,
-                        GuidProperty = Guid.NewGuid()
-                    });
-                }
-
-                MergeCommand<SampleEntity> command = SUT.Merge<SampleEntity>(entities);
-                command.Compare.IncludeProperty(x => x.Id);
-                command.Insert.ExcludeProperty(x => x.Id);
-                command.Output.IncludeProperty(x => x.Id);
-                int changes = command.Execute(MergeType.Insert);
-
-                changes.ShouldEqual(insertCount);
-                entities.ForEach(
-                    (entity) => entity.Id.ShouldNotEqual(0));
-            }
-        }
-
     }
 }

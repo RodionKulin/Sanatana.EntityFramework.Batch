@@ -57,15 +57,8 @@ namespace Sanatana.EntityFramework.Batch
         /// <returns></returns>
         public static string GetColumnName(this DbContext context, Type entityType, string efPropertyName)
         {
-            ObjectContext objectContext = ((IObjectContextAdapter)context).ObjectContext;
-            string entityName = entityType.Name;
-
-            List<EdmProperty> entityProperties = objectContext.MetadataWorkspace
-               .GetItems(DataSpace.SSpace)
-               .Where(m => m.BuiltInTypeKind == BuiltInTypeKind.EntityType)
-               .SelectMany(x => (x as EntityType).Properties)
-               .Where(m => m.DeclaringType.Name == entityName)
-               .ToList();
+            EntityType entityConfig = GetEntityType(context, entityType);
+            IEnumerable<EdmProperty> entityProperties = entityConfig.Properties;
 
             EdmProperty selectedProperty = entityProperties.FirstOrDefault(
                 x => (string)x.MetadataProperties.First(
@@ -78,8 +71,7 @@ namespace Sanatana.EntityFramework.Batch
 
             return selectedProperty.Name;
         }
-
-
+        
         /// <summary> 
         /// Create DataTable from entity list. 
         /// </summary> 
@@ -145,6 +137,59 @@ namespace Sanatana.EntityFramework.Batch
             }
 
             return table;
+        }
+
+        public static List<string> GetIdKeys<T>(this DbContext context)
+            where T : class
+        {
+            ObjectContext objectContext = ((IObjectContextAdapter)context).ObjectContext;
+            ObjectSet<T> set = objectContext.CreateObjectSet<T>();
+            List<string> keyNames = set.EntitySet.ElementType
+                .KeyMembers
+                .Select(k => k.Name)
+                .ToList();
+
+            return keyNames;
+        }
+
+        public static List<string> GetDatabaseGeneratedOrComputedKeys<T>(this DbContext context)
+            where T : class
+        {
+            Type typeName = typeof(T);
+            return GetDatabaseGeneratedOrComputedKeys(context, typeName);
+        }
+
+        public static List<string> GetDatabaseGeneratedOrComputedKeys(this DbContext context, Type entityType)
+        {
+            EntityType entityConfig = GetEntityType(context, entityType);
+            IEnumerable<EdmProperty> entityProperties = entityConfig.Properties;
+            
+            List<string> keyNames = entityProperties
+                .Where(x => x.IsStoreGeneratedIdentity
+                    || x.IsStoreGeneratedComputed)
+                .Select(x => x.Name)
+                .ToList();
+
+            return keyNames;
+        }
+        
+        private static EntityType GetEntityType(this DbContext context, Type entityType)
+        {
+            ObjectContext objectContext = ((IObjectContextAdapter)context).ObjectContext;
+            string entityName = entityType.Name;
+
+            EntityType entityConfig = objectContext.MetadataWorkspace
+               .GetItems(DataSpace.SSpace)
+               .Where(m => m.BuiltInTypeKind == BuiltInTypeKind.EntityType)
+               .OfType<EntityType>()
+               .FirstOrDefault(m => m.Name == entityName);
+
+            if (entityType == null)
+            {
+                throw new NullReferenceException($"Entity {entityName} was not found in EntityFramework configuration");
+            }
+
+            return entityConfig;
         }
     }
 }

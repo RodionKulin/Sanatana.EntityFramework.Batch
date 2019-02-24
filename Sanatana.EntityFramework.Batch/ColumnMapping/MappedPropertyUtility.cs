@@ -29,7 +29,7 @@ namespace Sanatana.EntityFramework.Batch.ColumnMapping
         }
 
 
-        //refletion method
+        //Building property list
         public List<MappedProperty> GetAllEntityProperties()
         {
             if (_entityPropertyCache.ContainsKey(_entityType.FullName) == false)
@@ -41,7 +41,7 @@ namespace Sanatana.EntityFramework.Batch.ColumnMapping
             List<MappedProperty> cachedProperties = _entityPropertyCache[_entityType.FullName];
             return CopyProperties(cachedProperties);
         }
-
+        
         protected List<MappedProperty> GetPropertiesHierarchy(Type rootType, Type propertyType, List<string> parentPropertyNames)
         {
             List<MappedProperty> list = new List<MappedProperty>();
@@ -123,6 +123,8 @@ namespace Sanatana.EntityFramework.Batch.ColumnMapping
             return list;
         }
 
+
+        //Property values
         public void GetValues(List<MappedProperty> properties, object entity)
         {
             foreach (MappedProperty property in properties)
@@ -140,12 +142,15 @@ namespace Sanatana.EntityFramework.Batch.ColumnMapping
             }
         }
 
-        public List<MappedProperty> FilterProperties(List<MappedProperty> properties
-            , List<string> includeProperties, List<string> excludeProperties, bool excludeAllByDefault)
+
+        //Filtering and ordering
+        public List<MappedProperty> FilterProperties(List<MappedProperty> properties, bool hasOtherConditions
+            , List<string> includeProperties, List<string> excludeProperties
+            , bool excludeAllByDefault, IncludeDbGeneratedProperties includeDbGeneratedProperties)
         {
             List<MappedProperty> selectedProperties;
 
-            if (includeProperties.Count > 0)
+            if (includeProperties.Count > 0 || hasOtherConditions)
             {
                 selectedProperties = properties.Where(
                     pr => pr.IsComplexProperty
@@ -162,10 +167,26 @@ namespace Sanatana.EntityFramework.Batch.ColumnMapping
             else if (excludeAllByDefault)
             {
                 selectedProperties = new List<MappedProperty>();
+
+                if (includeDbGeneratedProperties == IncludeDbGeneratedProperties.IncludeByDefault)
+                {
+                    List<string> generatedProps = _context.GetDatabaseGeneratedOrComputedKeys(_entityType);
+                    selectedProperties = properties
+                        .Where(x => generatedProps.Contains(x.EfMappedName))
+                        .ToList();
+                }
             }
-            else
+            else //include all by default
             {
                 selectedProperties = properties;
+
+                if(includeDbGeneratedProperties == IncludeDbGeneratedProperties.ExcludeByDefault)
+                {
+                    List<string> generatedProps = _context.GetDatabaseGeneratedOrComputedKeys(_entityType);
+                    selectedProperties = selectedProperties
+                        .Where(x => !generatedProps.Contains(x.EfMappedName))
+                        .ToList();
+                }
             }
 
             //exclude properties that are not part mapped to any column
@@ -179,8 +200,8 @@ namespace Sanatana.EntityFramework.Batch.ColumnMapping
                 if (selectedProperties[i].IsComplexProperty)
                 {
                     MappedProperty copy = selectedProperties[i].Copy();
-                    copy.ChildProperties = FilterProperties(selectedProperties[i].ChildProperties
-                        , includeProperties, excludeProperties, excludeAllByDefault);
+                    copy.ChildProperties = FilterProperties(selectedProperties[i].ChildProperties, hasOtherConditions
+                        , includeProperties, excludeProperties, excludeAllByDefault, includeDbGeneratedProperties);
                     selectedProperties[i] = copy;
                 }
             }

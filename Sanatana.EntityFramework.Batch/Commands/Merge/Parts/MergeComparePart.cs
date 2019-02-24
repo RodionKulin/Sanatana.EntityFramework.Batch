@@ -36,6 +36,7 @@ namespace Sanatana.EntityFramework.Batch.Commands.Merge
         public MergeComparePart<TEntity> Condition<TKey>(Expression<Func<TEntity, TEntity, TKey>> condition)
         {
             Expressions.Add(condition);
+            _hasOtherConditions = true;
             return this;
         }
 

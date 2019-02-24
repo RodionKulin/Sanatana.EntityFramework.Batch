@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
-namespace Sanatana.EntityFramework.Batch.Commands.Tests.Samples.Entities
+namespace Sanatana.EntityFramework.BatchSpecs.Samples.Entities
 {
     public class SampleEntity
     {

@@ -1,5 +1,5 @@
 ﻿using NUnit.Framework;
-using Sanatana.EntityFramework.Batch.Commands.Tests.Samples;
+using Sanatana.EntityFramework.BatchSpecs.Samples;
 using Sanatana.EntityFramework.BatchSpecs.TestTools.Interfaces;
 using SpecsFor;
 using System;
@@ -8,8 +8,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Sanatana.EntityFramework.Batch;
-using Sanatana.EntityFramework.Batch.Commands.Tests.Samples.Entities;
 using Sanatana.EntityFramework.Batch.Reflection;
+using Sanatana.EntityFramework.BatchSpecs.Samples.Entities;
 
 namespace Sanatana.EntityFramework.BatchSpecs
 {
@@ -20,7 +20,7 @@ namespace Sanatana.EntityFramework.BatchSpecs
             , INeedSampleDatabase
         {
             public SampleDbContext SampleDatabase { get; set; }
-
+            
             [Test]
             public void then_it_returns_entity_member_name()
             {

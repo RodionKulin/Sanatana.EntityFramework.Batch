@@ -48,7 +48,7 @@ namespace Sanatana.EntityFramework.Batch.Commands.Merge
         /// </summary>
         public string TableName { get; set; }
         /// <summary>
-        /// List of columns to include as parameters to the query from provided Source entities.        /// 
+        /// List of columns to include as parameters to the query from provided Source entities.
         /// All properties are included by default.
         /// </summary>
         public MappingComponent<TEntity> Source { get; protected set; }
@@ -58,25 +58,28 @@ namespace Sanatana.EntityFramework.Batch.Commands.Merge
         /// </summary>
         public MergeComparePart<TEntity> Compare { get; protected set; }
         /// <summary>
-        /// List of columns to update on Target table for rows that did match Source rows if Update or Upsert type of merge is executed.
+        /// Used if Update or Upsert type of merge is executed.
+        /// List of columns to update on Target table for rows that did match Source rows.
         /// All properties are included by default.
         /// </summary>
         public MergeUpdatePart<TEntity> UpdateMatched { get; protected set; }
         /// <summary>
-        /// List of columns to update on Target table for rows that did not match Source rows if Update type of merge is executed.
+        /// Used if Update type of merge is executed.
+        /// List of columns to update on Target table for rows that did not match Source rows.
         /// All properties are excluded by default.
         /// </summary>
         public MergeUpdatePart<TEntity> UpdateNotMatched { get; protected set; }
         /// <summary>
-        /// List of columns to insert if Insert of Upsert type of merge is executed.
+        /// Used if Insert or Upsert type of merge is executed.
+        /// List of columns to insert.
         /// All properties are included by default.
         /// </summary>
         public MergeInsertPart<TEntity> Insert { get; protected set; }
         /// <summary>
         /// List of columns to return for inserted rows. 
         /// Include columns that are generated on database side, like auto increment field.
-        /// Returned values will be set on provided entities properties.
-        /// All properties are excluded by default.
+        /// Returned values will be set to provided entities properties.
+        /// Database generated or computed properties are included by default.
         /// </summary>
         public MappingComponent<TEntity> Output { get; protected set; }
 
@@ -103,10 +106,14 @@ namespace Sanatana.EntityFramework.Batch.Commands.Merge
             {
                 ExcludeAllByDefault = true
             };
-            Insert = new MergeInsertPart<TEntity>(_entityProperties, _mergePropertyUtility);
+            Insert = new MergeInsertPart<TEntity>(_entityProperties, _mergePropertyUtility)
+            {
+                IncludeGeneratedProperties = IncludeDbGeneratedProperties.ExcludeByDefault
+            };
             Output = new MappingComponent<TEntity>(_entityProperties, _mergePropertyUtility)
             {
-                ExcludeAllByDefault = true
+                ExcludeAllByDefault = true,
+                IncludeGeneratedProperties = IncludeDbGeneratedProperties.IncludeByDefault
             };
             _targetAlias = ExpressionsToMSSql.ALIASES[0];
             _sourceAlias = ExpressionsToMSSql.ALIASES[1];
@@ -276,7 +283,7 @@ namespace Sanatana.EntityFramework.Batch.Commands.Merge
             for (int i = 0; i < entities.Count; i++)
             {
                 sql.Append("(");
-                sql.Append(i + ",");
+                sql.Append(i + ",");    //row id to match command outputs to input entities
 
                 TEntity entity = entities[i];
                 List<MappedProperty> entityProperties = Source.GetSelectedFlatWithValues(entity);
@@ -312,6 +319,7 @@ namespace Sanatana.EntityFramework.Batch.Commands.Merge
             List<string> columnNameList = Source.GetSelectedFlat()
                 .Select(x => x.EfMappedName)
                 .ToList();
+
             columnNameList.Insert(0, SOURCE_ID_COLUMN_NAME);    //row id to match command outputs to input entities
             string columnNamesString = string.Join(",", columnNameList);
             sql.AppendFormat(") AS {0} ({1})", _sourceAlias, columnNamesString);

@@ -65,6 +65,7 @@ namespace Sanatana.EntityFramework.Batch.Commands.Merge
             string sqlValue = ExpressionsToMSSql.ConstantToMSSql(value, typeof(TProp));
             Defaults[propName] = sqlValue;
 
+            _hasOtherConditions = true;
             return this;
         }
 
@@ -81,6 +82,7 @@ namespace Sanatana.EntityFramework.Batch.Commands.Merge
             string sqlValue = ExpressionsToMSSql.ConstantToMSSql(value, typeof(TProp));
             Defaults[propName] = sqlValue;
 
+            _hasOtherConditions = true;
             return this;
         }
 

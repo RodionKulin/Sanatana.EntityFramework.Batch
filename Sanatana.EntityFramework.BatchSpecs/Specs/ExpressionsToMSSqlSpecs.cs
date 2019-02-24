@@ -1,5 +1,5 @@
 ﻿using NUnit.Framework;
-using Sanatana.EntityFramework.Batch.Commands.Tests.Samples;
+using Sanatana.EntityFramework.BatchSpecs.Samples;
 using Sanatana.EntityFramework.BatchSpecs.TestTools.Interfaces;
 using SpecsFor;
 using System;
@@ -9,10 +9,10 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 using Sanatana.EntityFramework.Batch.Expressions;
-using Sanatana.EntityFramework.Batch.Commands.Tests.Samples.Entities;
 using System.Text.RegularExpressions;
 using System.Data.Entity;
 using LinqKit;
+using Sanatana.EntityFramework.BatchSpecs.Samples.Entities;
 
 namespace Sanatana.EntityFramework.BatchSpecs
 {

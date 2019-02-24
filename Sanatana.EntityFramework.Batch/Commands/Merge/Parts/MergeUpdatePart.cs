@@ -44,6 +44,7 @@ namespace Sanatana.EntityFramework.Batch.Commands.Merge
                 Left = targetProperty,
                 Right = assignedValue
             });
+            _hasOtherConditions = true;
             return this;
         }
 
@@ -72,5 +73,6 @@ namespace Sanatana.EntityFramework.Batch.Commands.Merge
             _excludePropertyEfDefaultNames.Add(propName);
             return this;
         }
+
     }
 }

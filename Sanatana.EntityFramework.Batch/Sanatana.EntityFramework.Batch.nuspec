@@ -11,6 +11,7 @@
     <projectUrl>https://github.com/RodionKulin/Sanatana.EntityFramework.Batch</projectUrl>
     <tags>EntityFramework EF MSSQL Merge Batch</tags>
     <copyright>Copyright ©2014 RodionKulin</copyright>
+    <releaseNotes></releaseNotes>
 
     <dependencies>
       <dependency id="EntityFramework" version="6.2.0" />
