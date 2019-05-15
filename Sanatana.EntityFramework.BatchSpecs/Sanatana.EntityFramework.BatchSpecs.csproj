@@ -80,24 +80,29 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Resources\Scripts\ScriptRes.Designer.cs" />
+    <Compile Include="Resources\Scripts\ScriptRes.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>ScriptRes.resx</DependentUpon>
+    </Compile>
     <Compile Include="Samples\Entities\DbGenerated\AttributedIdDbGenerated.cs" />
     <Compile Include="Samples\Entities\Keys\CompoundKeyEntity.cs" />
     <Compile Include="Samples\Entities\Keys\CustomKeyName.cs" />
     <Compile Include="Samples\Entities\DbGenerated\CompoundKeyDbGenerated.cs" />
     <Compile Include="Samples\Entities\DbGenerated\ConventionKeyDbGenerated.cs" />
     <Compile Include="Samples\Entities\DbGenerated\RenamedColumnDbGenerated.cs" />
+    <Compile Include="Samples\Entities\WithSomePropsUnmapped.cs" />
     <Compile Include="Samples\TestInitializerDbContext.cs" />
     <Compile Include="Specs\ExpressionsToMSSqlSpecs.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Specs\MergeSpecs.cs" />
     <Compile Include="Specs\RepositorySpecs.cs" />
-    <Compile Include="Samples\Entities\EmbeddedEntity.cs" />
+    <Compile Include="Samples\Entities\ComplexProp\EmbeddedEntity.cs" />
     <Compile Include="Samples\Entities\Generic\GenericDerivedEntity.cs" />
     <Compile Include="Samples\Entities\Generic\GenericEntity.cs" />
     <Compile Include="Samples\Entities\Relations\ManyToOneEntity.cs" />
     <Compile Include="Samples\Entities\Relations\OneToManyEntity.cs" />
-    <Compile Include="Samples\Entities\ParentEntity.cs" />
+    <Compile Include="Samples\Entities\ComplexProp\ParentEntity.cs" />
     <Compile Include="Samples\Entities\SampleEntity.cs" />
     <Compile Include="Samples\SampleDbContext.cs" />
     <Compile Include="Specs\ReflectionUtilitySpecs.cs" />
@@ -125,7 +130,10 @@
     <Content Include="Resources\Scripts\ExceptionHierarchyType.sql" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources\Scripts\ScriptRes.resx" />
+    <EmbeddedResource Include="Resources\Scripts\ScriptRes.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>ScriptRes.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

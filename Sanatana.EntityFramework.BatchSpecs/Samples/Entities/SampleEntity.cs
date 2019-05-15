@@ -34,8 +34,8 @@ namespace Sanatana.EntityFramework.BatchSpecs.Samples.Entities
             }
             set
             {
-
             }
         }
+
     }
 }

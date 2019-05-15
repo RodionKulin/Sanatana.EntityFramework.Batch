@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Sanatana.EntityFramework.Batch.Commands.Merge
 {
-    public class MergeComparePart<TEntity> : MappingComponentBase<TEntity>
+    public class MergeCompareArgs<TEntity> : CommandArgsBase<TEntity>
         where TEntity : class
     {
         //properties
@@ -18,7 +18,7 @@ namespace Sanatana.EntityFramework.Batch.Commands.Merge
 
 
         //init
-        internal MergeComparePart(List<MappedProperty> allEntityProperties, MappedPropertyUtility mappedPropertyUtility)
+        internal MergeCompareArgs(List<MappedProperty> allEntityProperties, MappedPropertyUtility mappedPropertyUtility)
             : base(allEntityProperties, mappedPropertyUtility)
         {
             Expressions = new List<Expression>();
@@ -33,7 +33,7 @@ namespace Sanatana.EntityFramework.Batch.Commands.Merge
         /// <typeparam name="TKey"></typeparam>
         /// <param name="expression"></param>
         /// <returns></returns>
-        public MergeComparePart<TEntity> Condition<TKey>(Expression<Func<TEntity, TEntity, TKey>> condition)
+        public virtual MergeCompareArgs<TEntity> Condition<TKey>(Expression<Func<TEntity, TEntity, TKey>> condition)
         {
             Expressions.Add(condition);
             _hasOtherConditions = true;
@@ -46,7 +46,7 @@ namespace Sanatana.EntityFramework.Batch.Commands.Merge
         /// <typeparam name="TProp"></typeparam>
         /// <param name="property"></param>
         /// <returns></returns>
-        public virtual MergeComparePart<TEntity> IncludeProperty<TProp>(Expression<Func<TEntity, TProp>> property)
+        public virtual MergeCompareArgs<TEntity> IncludeProperty<TProp>(Expression<Func<TEntity, TProp>> property)
         {
             string propName = ReflectionUtility.GetMemberName(property);
             _includePropertyEfDefaultNames.Add(propName);
@@ -59,10 +59,32 @@ namespace Sanatana.EntityFramework.Batch.Commands.Merge
         /// <typeparam name="TProp"></typeparam>
         /// <param name="property"></param>
         /// <returns></returns>
-        public virtual MergeComparePart<TEntity> ExcludeProperty<TProp>(Expression<Func<TEntity, TProp>> property)
+        public virtual MergeCompareArgs<TEntity> ExcludeProperty<TProp>(Expression<Func<TEntity, TProp>> property)
         {
             string propName = ReflectionUtility.GetMemberName(property);
             _excludePropertyEfDefaultNames.Add(propName);
+            return this;
+        }
+
+        /// <summary>
+        /// Set defaults when no property is selected.
+        /// </summary>
+        /// <param name="excludeAllByDefault"></param>
+        public virtual MergeCompareArgs<TEntity> SetExcludeAllByDefault(bool excludeAllByDefault)
+        {
+            ExcludeAllByDefault = excludeAllByDefault;
+            return this;
+        }
+
+        /// <summary>
+        /// Set defaults for database generated properties when no property is selected..
+        /// </summary>
+        /// <param name="excludeDbGeneratedByDefault"></param>
+        /// <returns></returns>
+        public virtual MergeCompareArgs<TEntity> SetExcludeDbGeneratedByDefault(
+            ExcludeOptions excludeDbGeneratedByDefault)
+        {
+            ExcludeDbGeneratedByDefault = excludeDbGeneratedByDefault;
             return this;
         }
     }

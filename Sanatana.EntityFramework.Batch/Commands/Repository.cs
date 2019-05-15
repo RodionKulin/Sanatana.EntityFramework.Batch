@@ -266,7 +266,7 @@ namespace Sanatana.EntityFramework.Batch.Commands
             where TEntity : class
         {
             var command = new DeleteCommand<TEntity>(Context);
-            int changes = await command.ExecuteAsync(matchExpression);
+            int changes = await command.ExecuteAsync(matchExpression).ConfigureAwait(false);
             return changes;
         }
 

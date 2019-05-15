@@ -139,6 +139,12 @@ namespace Sanatana.EntityFramework.Batch
             return table;
         }
 
+        /// <summary>
+        /// Get list of properties that are used as an entity key. 
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="context"></param>
+        /// <returns></returns>
         public static List<string> GetIdKeys<T>(this DbContext context)
             where T : class
         {
@@ -152,14 +158,26 @@ namespace Sanatana.EntityFramework.Batch
             return keyNames;
         }
 
-        public static List<string> GetDatabaseGeneratedOrComputedKeys<T>(this DbContext context)
+        /// <summary>
+        /// Get list of properties that configured to be DatabaseGenerated with option DatabaseGeneratedOption.Identity or DatabaseGeneratedOption.Computed
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        public static List<string> GetDatabaseGeneratedProperties<T>(this DbContext context)
             where T : class
         {
             Type typeName = typeof(T);
-            return GetDatabaseGeneratedOrComputedKeys(context, typeName);
+            return GetDatabaseGeneratedProperties(context, typeName);
         }
 
-        public static List<string> GetDatabaseGeneratedOrComputedKeys(this DbContext context, Type entityType)
+        /// <summary>
+        /// Get list of properties that configured to be DatabaseGenerated with option DatabaseGeneratedOption.Identity or DatabaseGeneratedOption.Computed
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="entityType"></param>
+        /// <returns></returns>
+        public static List<string> GetDatabaseGeneratedProperties(this DbContext context, Type entityType)
         {
             EntityType entityConfig = GetEntityType(context, entityType);
             IEnumerable<EdmProperty> entityProperties = entityConfig.Properties;
@@ -172,7 +190,36 @@ namespace Sanatana.EntityFramework.Batch
 
             return keyNames;
         }
-        
+
+        /// <summary>
+        /// Get list of all mapped properties for a given entity.
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        public static List<string> GetAllMappedProperties<T>(this DbContext context)
+        {
+            Type typeName = typeof(T);
+            return GetAllMappedProperties(context, typeName);
+        }
+
+        /// <summary>
+        /// Get list of all mapped properties for a given entity.
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="entityType"></param>
+        /// <returns></returns>
+        public static List<string> GetAllMappedProperties(this DbContext context, Type entityType)
+        {
+            EntityType entityConfig = GetEntityType(context, entityType);
+            IEnumerable<EdmProperty> entityProperties = entityConfig.Properties;
+
+            List<string> keyNames = entityProperties
+                .Select(x => x.Name)
+                .ToList();
+
+            return keyNames;
+        }
+
         private static EntityType GetEntityType(this DbContext context, Type entityType)
         {
             ObjectContext objectContext = ((IObjectContextAdapter)context).ObjectContext;

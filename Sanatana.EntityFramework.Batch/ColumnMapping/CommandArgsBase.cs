@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Sanatana.EntityFramework.Batch.ColumnMapping
 {
-    public abstract class MappingComponentBase<TEntity>
+    public abstract class CommandArgsBase<TEntity>
         where TEntity : class
     {
         //fields
@@ -20,13 +20,19 @@ namespace Sanatana.EntityFramework.Batch.ColumnMapping
 
 
         //properties
+        /// <summary>
+        /// Should include all properties on no additional configuration provided. If no properties are included, excluded or assigned.
+        /// </summary>
         public bool ExcludeAllByDefault { get; set; }
 
-        public IncludeDbGeneratedProperties IncludeGeneratedProperties { get; set; }
+        /// <summary>
+        /// Should include database generated properties on no additional configuration provided. If no properties are included, excluded or assigned.
+        /// </summary>
+        public ExcludeOptions ExcludeDbGeneratedByDefault { get; set; }
 
 
         //init
-        internal MappingComponentBase(List<MappedProperty> allEntityProperties
+        internal CommandArgsBase(List<MappedProperty> allEntityProperties
             , MappedPropertyUtility mappedPropertyUtility)
         {
             _allEntityProperties = allEntityProperties;
@@ -42,7 +48,7 @@ namespace Sanatana.EntityFramework.Batch.ColumnMapping
         {
             List<MappedProperty> selected = _mappedPropertyUtility.FilterProperties(
                 _allEntityProperties, _hasOtherConditions, _includePropertyEfDefaultNames
-                , _excludePropertyEfDefaultNames, ExcludeAllByDefault, IncludeGeneratedProperties);
+                , _excludePropertyEfDefaultNames, ExcludeAllByDefault, ExcludeDbGeneratedByDefault);
 
             selected = _mappedPropertyUtility.FlattenHierarchy(selected);
             selected = _mappedPropertyUtility.OrderFlatBySelectedProperties(selected, _includePropertyEfDefaultNames);
@@ -53,7 +59,7 @@ namespace Sanatana.EntityFramework.Batch.ColumnMapping
         {
             List<MappedProperty> selected = _mappedPropertyUtility.FilterProperties(
                 _allEntityProperties, _hasOtherConditions, _includePropertyEfDefaultNames
-                , _excludePropertyEfDefaultNames, ExcludeAllByDefault, IncludeGeneratedProperties);
+                , _excludePropertyEfDefaultNames, ExcludeAllByDefault, ExcludeDbGeneratedByDefault);
 
             _mappedPropertyUtility.GetValues(selected, entity);
             selected = _mappedPropertyUtility.FlattenHierarchy(selected);
@@ -62,7 +68,7 @@ namespace Sanatana.EntityFramework.Batch.ColumnMapping
             return selected;
         }
 
-        internal List<string> GetSelectedPropertyNames()
+        internal virtual List<string> GetSelectedPropertyNames()
         {
             return GetSelectedFlat()
                 .Select(p => p.PropertyInfo.Name)

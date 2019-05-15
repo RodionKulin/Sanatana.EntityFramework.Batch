@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Sanatana.EntityFramework.Batch.Commands.Merge
 {
-    public class MergeInsertPart<TEntity> : MappingComponentBase<TEntity>
+    public class MergeInsertArgs<TEntity> : CommandArgsBase<TEntity>
         where TEntity : class
     {
         //properties
@@ -18,7 +18,7 @@ namespace Sanatana.EntityFramework.Batch.Commands.Merge
 
 
         //init
-        internal MergeInsertPart(List<MappedProperty> allEntityProperties, MappedPropertyUtility mappedPropertyUtility)
+        internal MergeInsertArgs(List<MappedProperty> allEntityProperties, MappedPropertyUtility mappedPropertyUtility)
             : base(allEntityProperties, mappedPropertyUtility)
         {
             Defaults = new Dictionary<string, string>();
@@ -33,7 +33,7 @@ namespace Sanatana.EntityFramework.Batch.Commands.Merge
         /// <typeparam name="TProp"></typeparam>
         /// <param name="property"></param>
         /// <returns></returns>
-        public virtual MergeInsertPart<TEntity> IncludeProperty<TProp>(Expression<Func<TEntity, TProp>> property)
+        public virtual MergeInsertArgs<TEntity> IncludeProperty<TProp>(Expression<Func<TEntity, TProp>> property)
         {
             string propName = ReflectionUtility.GetMemberName(property);
             _includePropertyEfDefaultNames.Add(propName);
@@ -46,7 +46,7 @@ namespace Sanatana.EntityFramework.Batch.Commands.Merge
         /// <typeparam name="TProp"></typeparam>
         /// <param name="property"></param>
         /// <returns></returns>
-        public virtual MergeInsertPart<TEntity> ExcludeProperty<TProp>(Expression<Func<TEntity, TProp>> property)
+        public virtual MergeInsertArgs<TEntity> ExcludeProperty<TProp>(Expression<Func<TEntity, TProp>> property)
         {
             string propName = ReflectionUtility.GetMemberName(property);
             _excludePropertyEfDefaultNames.Add(propName);
@@ -59,7 +59,7 @@ namespace Sanatana.EntityFramework.Batch.Commands.Merge
         /// <typeparam name="TProp"></typeparam>
         /// <param name="property"></param>
         /// <returns></returns>
-        public MergeInsertPart<TEntity> IncludeValue<TProp>(Expression<Func<TEntity, TProp>> property, TProp value)
+        public virtual MergeInsertArgs<TEntity> IncludeValue<TProp>(Expression<Func<TEntity, TProp>> property, TProp value)
         {
             string propName = ReflectionUtility.GetMemberName(property);
             string sqlValue = ExpressionsToMSSql.ConstantToMSSql(value, typeof(TProp));
@@ -75,7 +75,7 @@ namespace Sanatana.EntityFramework.Batch.Commands.Merge
         /// <typeparam name="TProp"></typeparam>
         /// <param name="property"></param>
         /// <returns></returns>
-        public MergeInsertPart<TEntity> IncludeDefaultValue<TProp>(Expression<Func<TEntity, TProp>> property)
+        public virtual MergeInsertArgs<TEntity> IncludeDefaultValue<TProp>(Expression<Func<TEntity, TProp>> property)
         {
             string propName = ReflectionUtility.GetMemberName(property);
             TProp value = default(TProp);
@@ -86,5 +86,26 @@ namespace Sanatana.EntityFramework.Batch.Commands.Merge
             return this;
         }
 
+        /// <summary>
+        /// Set defaults when no property is selected.
+        /// </summary>
+        /// <param name="excludeAllByDefault"></param>
+        public virtual MergeInsertArgs<TEntity> SetExcludeAllByDefault(bool excludeAllByDefault)
+        {
+            ExcludeAllByDefault = excludeAllByDefault;
+            return this;
+        }
+
+        /// <summary>
+        /// Set defaults for database generated properties when no property is selected.
+        /// </summary>
+        /// <param name="excludeDbGeneratedByDefault"></param>
+        /// <returns></returns>
+        public virtual MergeInsertArgs<TEntity> SetExcludeDbGeneratedByDefault(
+            ExcludeOptions excludeDbGeneratedByDefault)
+        {
+            ExcludeDbGeneratedByDefault = excludeDbGeneratedByDefault;
+            return this;
+        }
     }
 }

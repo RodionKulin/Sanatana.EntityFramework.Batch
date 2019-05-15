@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
 using System.Data.SqlClient;
@@ -50,7 +51,10 @@ namespace Sanatana.EntityFramework.Batch.ChangeNotifier
             using (SqlCommand command = _query.ToSqlCommand())
             {
                 command.Connection = connection;
-                connection.Open();
+                if (connection.State != ConnectionState.Open)
+                {
+                    connection.Open();
+                }
 
                 var sqlDependency = new SqlDependency(command);
                 sqlDependency.OnChange += new OnChangeEventHandler(SqlDependency_OnChange);

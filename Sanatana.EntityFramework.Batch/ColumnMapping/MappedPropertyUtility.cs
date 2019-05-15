@@ -146,7 +146,7 @@ namespace Sanatana.EntityFramework.Batch.ColumnMapping
         //Filtering and ordering
         public List<MappedProperty> FilterProperties(List<MappedProperty> properties, bool hasOtherConditions
             , List<string> includeProperties, List<string> excludeProperties
-            , bool excludeAllByDefault, IncludeDbGeneratedProperties includeDbGeneratedProperties)
+            , bool excludeAllByDefault, ExcludeOptions includeDbGeneratedProperties)
         {
             List<MappedProperty> selectedProperties;
 
@@ -168,9 +168,9 @@ namespace Sanatana.EntityFramework.Batch.ColumnMapping
             {
                 selectedProperties = new List<MappedProperty>();
 
-                if (includeDbGeneratedProperties == IncludeDbGeneratedProperties.IncludeByDefault)
+                if (includeDbGeneratedProperties == ExcludeOptions.Include)
                 {
-                    List<string> generatedProps = _context.GetDatabaseGeneratedOrComputedKeys(_entityType);
+                    List<string> generatedProps = _context.GetDatabaseGeneratedProperties(_entityType);
                     selectedProperties = properties
                         .Where(x => generatedProps.Contains(x.EfMappedName))
                         .ToList();
@@ -180,9 +180,9 @@ namespace Sanatana.EntityFramework.Batch.ColumnMapping
             {
                 selectedProperties = properties;
 
-                if(includeDbGeneratedProperties == IncludeDbGeneratedProperties.ExcludeByDefault)
+                if(includeDbGeneratedProperties == ExcludeOptions.Exclude)
                 {
-                    List<string> generatedProps = _context.GetDatabaseGeneratedOrComputedKeys(_entityType);
+                    List<string> generatedProps = _context.GetDatabaseGeneratedProperties(_entityType);
                     selectedProperties = selectedProperties
                         .Where(x => !generatedProps.Contains(x.EfMappedName))
                         .ToList();

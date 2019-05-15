@@ -20,8 +20,19 @@ namespace Sanatana.EntityFramework.Batch.Commands
 
 
         //properties
-        public MappingComponent<TEntity> Insert { get; protected set; }
-        public MappingComponent<TEntity> Output { get; protected set; }
+        /// <summary>
+        /// List of columns to insert.
+        /// Database generated properties are excluded by default.
+        /// All other properties are included by default.
+        /// </summary>
+        public CommandArgs<TEntity> Insert { get; protected set; }
+        /// <summary>
+        /// List of properties to return for inserted rows. 
+        /// Include properties that are generated on database side, like auto increment field.
+        /// Returned values will be set to provided entities properties.
+        /// Database generated or computed properties are included by default.
+        /// </summary>
+        public CommandArgs<TEntity> Output { get; protected set; }
 
 
         //init
@@ -34,14 +45,14 @@ namespace Sanatana.EntityFramework.Batch.Commands
             MappedPropertyUtility mappedPropertyUtility = new MappedPropertyUtility(context, entityType);
             List<MappedProperty> properties = mappedPropertyUtility.GetAllEntityProperties();
 
-            Insert = new MappingComponent<TEntity>(properties, mappedPropertyUtility)
+            Insert = new CommandArgs<TEntity>(properties, mappedPropertyUtility)
             {
-                IncludeGeneratedProperties = IncludeDbGeneratedProperties.ExcludeByDefault
+                ExcludeDbGeneratedByDefault = ExcludeOptions.Exclude
             };
-            Output = new MappingComponent<TEntity>(properties, mappedPropertyUtility)
+            Output = new CommandArgs<TEntity>(properties, mappedPropertyUtility)
             {
                 ExcludeAllByDefault = true,
-                IncludeGeneratedProperties = IncludeDbGeneratedProperties.IncludeByDefault
+                ExcludeDbGeneratedByDefault = ExcludeOptions.Include
             };
         }
 
@@ -182,7 +193,10 @@ namespace Sanatana.EntityFramework.Batch.Commands
             SqlConnection con = (SqlConnection)_context.Database.Connection;
             using (SqlCommand cmd = InitCommandWithParameters(sql, con, parameters))
             {
-                con.Open();
+                if(con.State != ConnectionState.Open)
+                {
+                    con.Open();
+                }
                 using (SqlDataReader dr = cmd.ExecuteReader())
                 {
                     return ReadFromDataReader(entities, dr);
@@ -197,7 +211,7 @@ namespace Sanatana.EntityFramework.Batch.Commands
             {
                 if(con.State != ConnectionState.Open)
                 {
-                    con.Open();
+                    await con.OpenAsync().ConfigureAwait(false);
                 }
                 using (SqlDataReader dr = await cmd.ExecuteReaderAsync().ConfigureAwait(false))
                 {
@@ -226,22 +240,25 @@ namespace Sanatana.EntityFramework.Batch.Commands
             List<MappedProperty> outputProperties = Output.GetSelectedFlat();
             int entityIndex = 0;
 
-            if (datareader.HasRows)
+            //throw read exception message and throw it
+            if (!datareader.HasRows)
             {
-                while (datareader.Read())
-                {
-                    TEntity entity = entities[entityIndex];
-                    entityIndex++;
+                datareader.Read();
+            }
 
-                    foreach (MappedProperty prop in outputProperties)
-                    {
-                        object value = datareader[prop.EfMappedName];
-                        Type propType = Nullable.GetUnderlyingType(prop.PropertyInfo.PropertyType) ?? prop.PropertyInfo.PropertyType;
-                        value = value == null
-                            ? null 
-                            : Convert.ChangeType(value, propType);
-                        prop.PropertyInfo.SetValue(entity, value);
-                    }
+            while (datareader.Read())
+            {
+                TEntity entity = entities[entityIndex];
+                entityIndex++;
+
+                foreach (MappedProperty prop in outputProperties)
+                {
+                    object value = datareader[prop.EfMappedName];
+                    Type propType = Nullable.GetUnderlyingType(prop.PropertyInfo.PropertyType) ?? prop.PropertyInfo.PropertyType;
+                    value = value == null
+                        ? null
+                        : Convert.ChangeType(value, propType);
+                    prop.PropertyInfo.SetValue(entity, value);
                 }
             }
 

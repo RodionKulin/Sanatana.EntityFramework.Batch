@@ -5,7 +5,7 @@ namespace Sanatana.EntityFramework.BatchSpecs.Samples
 {
     public class SampleDbContext : DbContext
     {
-        public const string CUSTOM_SCHEMA = "test";
+        public const string SAMPLE_TABLE_SCHEMA = "test";
         public const string SAMPLE_TABLE_NAME = "Sample Entities";
         public const string SAMPLE_ID_COLUMN_NAME = "CustomIntColumn";
         public const string COMPLEX_TYPE_COLUMN_NAME = "BuildingAddress";
@@ -35,7 +35,7 @@ namespace Sanatana.EntityFramework.BatchSpecs.Samples
 
             modelBuilder.Entity<SampleEntity>().Property(x => x.XmlProperty).HasColumnType("xml");
             modelBuilder.Entity<SampleEntity>().Property(x => x.IntProperty).HasColumnName(SAMPLE_ID_COLUMN_NAME);
-            modelBuilder.Entity<SampleEntity>().ToTable(SAMPLE_TABLE_NAME, CUSTOM_SCHEMA);
+            modelBuilder.Entity<SampleEntity>().ToTable(SAMPLE_TABLE_NAME, SAMPLE_TABLE_SCHEMA);
 
             modelBuilder.ComplexType<EmbeddedEntity>()
                 .Property(x => x.Address)
@@ -62,6 +62,7 @@ namespace Sanatana.EntityFramework.BatchSpecs.Samples
                 .HasKey(x => x.CustomId)
                 .Property(x => x.HelloIAmAProp).HasColumnName(RENAMED_DB_GENERATED_COLUMN_NAME);
 
+            modelBuilder.Entity<WithSomePropsUnmapped>().Ignore(x => x.NotMappedProp2);
         }
     }
 }

@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 namespace Sanatana.EntityFramework.Batch.ColumnMapping
 {
-    public enum IncludeDbGeneratedProperties
+    public enum ExcludeOptions
     {
-        NoChange,
-        IncludeByDefault,
-        ExcludeByDefault
+        NotSet,
+        Include,
+        Exclude
     }
 }

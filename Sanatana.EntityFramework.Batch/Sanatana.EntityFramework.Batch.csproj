@@ -52,9 +52,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ColumnMapping\IncludeDbGeneratedProperties.cs" />
-    <Compile Include="ColumnMapping\MappingComponent.cs" />
+    <Compile Include="ColumnMapping\ExcludeOptions.cs" />
+    <Compile Include="ColumnMapping\CommandArgs.cs" />
     <Compile Include="Commands\DeleteCommand.cs" />
+    <Compile Include="EntityFrameworkConstants.cs" />
     <Compile Include="Expressions\Visitors\SwapVisitor.cs" />
     <Compile Include="Extensions\DbQueryExtension.cs" />
     <Compile Include="ChangeNotifier\EntityChangeEventArgs.cs" />
@@ -67,19 +68,18 @@
     <Compile Include="Commands\InsertCommand.cs" />
     <Compile Include="Commands\RepositoryResult%271.cs" />
     <Compile Include="Commands\UpdateCommand.cs" />
-    <Compile Include="Commands\Merge\Parts\MergeInsertPart.cs" />
-    <Compile Include="Commands\Merge\Parts\MergeUpdatePart.cs" />
+    <Compile Include="Commands\Merge\Arguments\MergeInsertArgs.cs" />
+    <Compile Include="Commands\Merge\Arguments\MergeUpdateArgs.cs" />
     <Compile Include="Expressions\AssignLambdaExpression.cs" />
-    <Compile Include="Commands\Merge\Parts\MergeComparePart.cs" />
+    <Compile Include="Commands\Merge\Arguments\MergeCompareArgs.cs" />
     <Compile Include="Expressions\ExpressionsToMSSql.cs" />
-    <Compile Include="ColumnMapping\MappingComponentBase.cs" />
+    <Compile Include="ColumnMapping\CommandArgsBase.cs" />
     <Compile Include="Expressions\ExpressionContext.cs" />
     <Compile Include="Reflection\PropertyReflectionOptions.cs" />
     <Compile Include="Extensions\DbContextExtensions.cs" />
     <Compile Include="Commands\Repository.cs" />
     <Compile Include="Commands\Merge\MergeType.cs" />
     <Compile Include="Commands\Merge\MergeCommand.cs" />
-    <Compile Include="Extensions\TransactionExtensions.cs" />
     <Compile Include="Scripts\ScriptExtractor.cs" />
     <Compile Include="Scripts\ScriptInitializer.cs" />
     <Compile Include="Scripts\ScriptManager\LoadType.cs" />

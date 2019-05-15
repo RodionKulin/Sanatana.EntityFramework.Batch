@@ -51,37 +51,39 @@ namespace Sanatana.EntityFramework.Batch.Commands.Merge
         /// List of columns to include as parameters to the query from provided Source entities.
         /// All properties are included by default.
         /// </summary>
-        public MappingComponent<TEntity> Source { get; protected set; }
+        public CommandArgs<TEntity> Source { get; protected set; }
         /// <summary>
         /// List of columns used to match Target table rows to Source rows.
         /// All properties are excluded by default.
+        /// Parameter is required for all merge types except Insert. If not specified will insert all rows into Target table. 
         /// </summary>
-        public MergeComparePart<TEntity> Compare { get; protected set; }
+        public MergeCompareArgs<TEntity> Compare { get; protected set; }
         /// <summary>
         /// Used if Update or Upsert type of merge is executed.
         /// List of columns to update on Target table for rows that did match Source rows.
         /// All properties are included by default.
         /// </summary>
-        public MergeUpdatePart<TEntity> UpdateMatched { get; protected set; }
+        public MergeUpdateArgs<TEntity> UpdateMatched { get; protected set; }
         /// <summary>
         /// Used if Update type of merge is executed.
         /// List of columns to update on Target table for rows that did not match Source rows.
         /// All properties are excluded by default.
         /// </summary>
-        public MergeUpdatePart<TEntity> UpdateNotMatched { get; protected set; }
+        public MergeUpdateArgs<TEntity> UpdateNotMatched { get; protected set; }
         /// <summary>
         /// Used if Insert or Upsert type of merge is executed.
         /// List of columns to insert.
-        /// All properties are included by default.
+        /// Database generated properties are excluded by default.
+        /// All other properties are included by default.
         /// </summary>
-        public MergeInsertPart<TEntity> Insert { get; protected set; }
+        public MergeInsertArgs<TEntity> Insert { get; protected set; }
         /// <summary>
-        /// List of columns to return for inserted rows. 
-        /// Include columns that are generated on database side, like auto increment field.
+        /// List of properties to return for inserted rows. 
+        /// Include properties that are generated on database side, like auto increment field.
         /// Returned values will be set to provided entities properties.
         /// Database generated or computed properties are included by default.
         /// </summary>
-        public MappingComponent<TEntity> Output { get; protected set; }
+        public CommandArgs<TEntity> Output { get; protected set; }
 
 
 
@@ -96,24 +98,35 @@ namespace Sanatana.EntityFramework.Batch.Commands.Merge
             _mergePropertyUtility = new MappedPropertyUtility(context, entityType);
             _entityProperties = _mergePropertyUtility.GetAllEntityProperties();
 
-            Source = new MappingComponent<TEntity>(_entityProperties, _mergePropertyUtility);
-            Compare = new MergeComparePart<TEntity>(_entityProperties, _mergePropertyUtility)
+            Source = new CommandArgs<TEntity>(_entityProperties, _mergePropertyUtility)
             {
-                ExcludeAllByDefault = true
+                ExcludeAllByDefault = false,
+                ExcludeDbGeneratedByDefault = ExcludeOptions.NotSet
             };
-            UpdateMatched = new MergeUpdatePart<TEntity>(_entityProperties, _mergePropertyUtility);
-            UpdateNotMatched = new MergeUpdatePart<TEntity>(_entityProperties, _mergePropertyUtility)
-            {
-                ExcludeAllByDefault = true
-            };
-            Insert = new MergeInsertPart<TEntity>(_entityProperties, _mergePropertyUtility)
-            {
-                IncludeGeneratedProperties = IncludeDbGeneratedProperties.ExcludeByDefault
-            };
-            Output = new MappingComponent<TEntity>(_entityProperties, _mergePropertyUtility)
+            Compare = new MergeCompareArgs<TEntity>(_entityProperties, _mergePropertyUtility)
             {
                 ExcludeAllByDefault = true,
-                IncludeGeneratedProperties = IncludeDbGeneratedProperties.IncludeByDefault
+                ExcludeDbGeneratedByDefault = ExcludeOptions.NotSet
+            };
+            UpdateMatched = new MergeUpdateArgs<TEntity>(_entityProperties, _mergePropertyUtility)
+            {
+                ExcludeAllByDefault = false,
+                ExcludeDbGeneratedByDefault = ExcludeOptions.NotSet
+            };
+            UpdateNotMatched = new MergeUpdateArgs<TEntity>(_entityProperties, _mergePropertyUtility)
+            {
+                ExcludeAllByDefault = true,
+                ExcludeDbGeneratedByDefault = ExcludeOptions.NotSet
+            };
+            Insert = new MergeInsertArgs<TEntity>(_entityProperties, _mergePropertyUtility)
+            {
+                ExcludeAllByDefault = false,
+                ExcludeDbGeneratedByDefault = ExcludeOptions.Exclude
+            };
+            Output = new CommandArgs<TEntity>(_entityProperties, _mergePropertyUtility)
+            {
+                ExcludeAllByDefault = true,
+                ExcludeDbGeneratedByDefault = ExcludeOptions.Include
             };
             _targetAlias = ExpressionsToMSSql.ALIASES[0];
             _sourceAlias = ExpressionsToMSSql.ALIASES[1];
@@ -168,72 +181,90 @@ namespace Sanatana.EntityFramework.Batch.Commands.Merge
         //public methods
         public virtual int Execute(MergeType mergeType)
         {
+            _mergeType = mergeType;
             if (_entityList.Count == 0)
             {
                 return 0;
             }
 
-            string sqlCommand = ConstructCommand(mergeType);
-            SqlParameter[] sqlParameters = _useTVP
-                ? ConstructParameterTVP(_entityList)
-                : ConstructParameterValues(_entityList);
-            
-            bool hasOutput = Output.GetSelectedFlat().Count > 0;
-            if (hasOutput)
+            List<TEntity>[] entityBatches = GetEntityBatches(_entityList);
+            if (_transaction != null)
             {
-                return ReadOutput(sqlCommand, sqlParameters.ToArray(), _entityList);
+                return ReadOutput(entityBatches, _transaction);
             }
-            else
+
+            int res = 0;
+            using (DbContextTransaction batchTransaction =
+                _context.Database.BeginTransaction())
             {
-                return _context.Database
-                    .ExecuteSqlCommand(sqlCommand, sqlParameters.ToArray());
+                SqlTransaction sqlTransaction = (SqlTransaction)batchTransaction.UnderlyingTransaction;
+                res += ReadOutput(entityBatches, sqlTransaction);
+                batchTransaction.Commit();
             }
+            return res;
         }
 
-        public virtual Task<int> ExecuteAsync(MergeType mergeType)
-        {
-            if (_entityList.Count == 0)
-            {
-                return Task.FromResult(0);
-            }
-
-            string sqlCommand = ConstructCommand(mergeType);
-            SqlParameter[] sqlParameters = _useTVP
-                ? ConstructParameterTVP(_entityList)
-                : ConstructParameterValues(_entityList);
-
-            bool hasOutput = Output.GetSelectedFlat().Count > 0;
-            if (hasOutput)
-            {
-                return ReadOutputAsync(sqlCommand, sqlParameters.ToArray(), _entityList);
-            }
-            else
-            {
-                return _context.Database.ExecuteSqlCommandAsync(sqlCommand, sqlParameters.ToArray());
-            }
-
-        }
-
-        public virtual string ConstructCommand(MergeType mergeType)
+        public virtual async Task<int> ExecuteAsync(MergeType mergeType)
         {
             _mergeType = mergeType;
-
-            StringBuilder sqlScript = null;
-
-            //head
-            if (_useTVP)
+            if (_entityList.Count == 0)
             {
-                sqlScript = ConstructHeadTVP(_entityList);
-            }
-            else
-            {
-                sqlScript = ConstructHeadValues(_entityList);
+                return 0;
             }
 
-            //body
-            return ConstructBody(sqlScript);
+            List<TEntity>[] entityBatches = GetEntityBatches(_entityList);
+            if (_transaction != null)
+            {
+                return await ReadOutputAsync(entityBatches, _transaction)
+                    .ConfigureAwait(false);
+            }
+
+            int res = 0;
+            using (DbContextTransaction batchTransaction = _context.Database.BeginTransaction())
+            {
+                SqlTransaction sqlTransaction = (SqlTransaction)batchTransaction.UnderlyingTransaction;
+                res = await ReadOutputAsync(entityBatches, sqlTransaction).ConfigureAwait(false);
+                batchTransaction.Commit();
+            }
+            return res;
         }
-        
+
+
+
+        //limit number of entities in command
+        protected virtual List<TEntity>[] GetEntityBatches(List<TEntity> entities)
+        {
+            int paramsPerEntity = Source.GetSelectedFlat().Count;
+            if (paramsPerEntity == 0 || _useTVP)
+            {
+                return new List<TEntity>[] { entities };
+            }
+
+            int maxParams = EntityFrameworkConstants.MAX_NUMBER_OF_SQL_COMMAND_PARAMETERS;
+            if (paramsPerEntity > maxParams)
+            {
+                throw new NotSupportedException($"Single entity can not have more than {maxParams} sql parameters. Consider using TVP version of Merge.");
+            }
+
+            int maxEntitiesInBatch = maxParams / paramsPerEntity;
+            int requestCount = (int)Math.Ceiling((decimal)entities.Count / maxEntitiesInBatch);
+
+            var results = new List<TEntity>[requestCount];
+            for (int request = 0; request < requestCount; request++)
+            {
+                int skip = maxEntitiesInBatch * request;
+                List<TEntity> requestEntities = entities
+                    .Skip(skip)
+                    .Take(maxEntitiesInBatch)
+                    .ToList();
+                results[request] = requestEntities;
+            }
+
+            return results;
+        }
+
+
+
 
         //parameters
         protected virtual SqlParameter[] ConstructParameterValues(List<TEntity> entities)
@@ -270,9 +301,61 @@ namespace Sanatana.EntityFramework.Batch.Commands.Merge
 
             return new SqlParameter[] { tableParam };
         }
-                
 
-        //head
+
+        //construct sql command text
+        public virtual string ConstructCommand(MergeType mergeType, List<TEntity> entities)
+        {
+            _mergeType = mergeType;
+            StringBuilder sql = _useTVP
+                ? ConstructHeadTVP(entities)
+                : ConstructHeadValues(entities);
+
+            //on
+            if (_mergeType != MergeType.Insert)
+            {
+                ConstructOn(sql);
+            }
+            else
+            {
+                sql.AppendFormat(" ON 1 = 0 ");
+            }
+
+            //merge update
+            bool doUpdate = _mergeType == MergeType.Update
+                || _mergeType == MergeType.Upsert;
+            if (doUpdate)
+            {
+                ConstructUpdateMatched(sql);
+            }
+            if (_mergeType == MergeType.Update)
+            {
+                ConstructUpdateNotMatched(sql);
+            }
+
+            //merge insert
+            bool doInsert = _mergeType == MergeType.Insert
+                || _mergeType == MergeType.Upsert;
+            if (doInsert)
+            {
+                ConstructInsert(sql);
+            }
+
+            //merge delete
+            bool doDelete = _mergeType == MergeType.DeleteMatched
+                || _mergeType == MergeType.DeleteNotMatched;
+            if (doDelete)
+            {
+                ConstructDelete(sql);
+            }
+
+            //output
+            ConstructOutput(sql);
+
+            sql.Append(";");
+            return sql.ToString();
+        }
+
         protected virtual StringBuilder ConstructHeadValues(List<TEntity> entities)
         {
             StringBuilder sql = new StringBuilder();
@@ -335,9 +418,7 @@ namespace Sanatana.EntityFramework.Batch.Commands.Merge
 
             return sql;
         }
-
-
-        //body
+        
         protected virtual string ConstructBody(StringBuilder sql)
         {
             //on
@@ -349,7 +430,7 @@ namespace Sanatana.EntityFramework.Batch.Commands.Merge
                 || _mergeType == MergeType.Upsert;
             if (doUpdate)
             {
-                ConstructUpdate(sql);
+                ConstructUpdateMatched(sql);
             }
             if (_mergeType == MergeType.Update)
             {
@@ -390,11 +471,20 @@ namespace Sanatana.EntityFramework.Batch.Commands.Merge
                 stringParts.Add(expressionSql);
             }
 
+            if(stringParts.Count == 0 && _mergeType == MergeType.Insert)
+            {
+                stringParts.Add("0=1");
+            }
+            if (stringParts.Count == 0 && _mergeType != MergeType.Insert)
+            {
+                throw new ArgumentNullException($"{nameof(Compare)} expression must be specified if it is not an Insert command.");
+            }
+
             string compare = string.Join(" AND ", stringParts);
             sql.AppendFormat(" ON ({0}) ", compare);
         }
 
-        protected virtual void ConstructUpdate(StringBuilder sql)
+        protected virtual void ConstructUpdateMatched(StringBuilder sql)
         {
             List<string> stringParts = UpdateMatched.GetSelectedFlat()
                 .Select(c => string.Format("[{0}].[{1}]=[{2}].[{1}]", _targetAlias, c.EfMappedName, _sourceAlias))
@@ -498,40 +588,74 @@ namespace Sanatana.EntityFramework.Batch.Commands.Merge
             }
         }
 
-        protected virtual int ReadOutput(string sql, SqlParameter[] parameters, List<TEntity> entities)
+        protected virtual int ReadOutput(List<TEntity>[] entityBatches, SqlTransaction transaction)
         {
-            SqlConnection con = (SqlConnection)_context.Database.Connection;
-            using (SqlCommand cmd = InitCommandWithParameters(sql, con, parameters))
+            int res = 0;
+            foreach (List<TEntity> entitiesBatch in entityBatches)
             {
-                con.Open();
+                string sql = ConstructCommand(_mergeType, entitiesBatch);
+                SqlParameter[] parameters = _useTVP
+                    ? ConstructParameterTVP(entitiesBatch)
+                    : ConstructParameterValues(entitiesBatch);
+
+                bool hasOutput = Output.GetSelectedFlat().Count > 0;
+                if (!hasOutput)
+                {
+                    res += _context.Database.ExecuteSqlCommand(sql, parameters);
+                    continue;
+                }
+
+                using (SqlCommand cmd = InitCommandWithParameters(sql, parameters, transaction))
                 using (SqlDataReader dr = cmd.ExecuteReader())
                 {
-                    return ReadFromDataReader(entities, dr);
+                    res += ReadFromDataReader(entitiesBatch, dr);
                 }
             }
+            return res;
         }
 
-        protected virtual async Task<int> ReadOutputAsync(string sql, SqlParameter[] parameters, List<TEntity> entities)
+        protected virtual async Task<int> ReadOutputAsync(List<TEntity>[] entityBatches, SqlTransaction transaction)
         {
-            SqlConnection con = (SqlConnection)_context.Database.Connection;
-            using (SqlCommand cmd = InitCommandWithParameters(sql, con, parameters))
+            int res = 0;
+            foreach (List<TEntity> entitiesBatch in entityBatches)
             {
-                if (con.State != ConnectionState.Open)
+                string sql = ConstructCommand(_mergeType, entitiesBatch);
+                SqlParameter[] parameters = _useTVP
+                    ? ConstructParameterTVP(entitiesBatch)
+                    : ConstructParameterValues(entitiesBatch);
+
+                bool hasOutput = Output.GetSelectedFlat().Count > 0;
+                if (!hasOutput)
                 {
-                    con.Open();
+                    res += await _context.Database.ExecuteSqlCommandAsync(sql, parameters)
+                        .ConfigureAwait(false);
+                    continue;
                 }
-                using (SqlDataReader dr = await cmd.ExecuteReaderAsync().ConfigureAwait(false))
+
+                using (SqlCommand cmd = InitCommandWithParameters(sql, parameters, transaction))
+                using (SqlDataReader dr = await cmd.ExecuteReaderAsync()
+                    .ConfigureAwait(false))
                 {
-                    return ReadFromDataReader(entities, dr);
+                    res += ReadFromDataReader(entitiesBatch, dr);
                 }
             }
+
+            return res;
         }
 
-        protected virtual SqlCommand InitCommandWithParameters(string sql, SqlConnection con, SqlParameter[] parameters)
+        protected virtual SqlCommand InitCommandWithParameters(string sql,
+            SqlParameter[] parameters, SqlTransaction transaction)
         {
-            SqlCommand cmd = _transaction == null
+            //DbContext will dispose the connection
+            SqlConnection con = (SqlConnection)_context.Database.Connection;
+            if (con.State != ConnectionState.Open)
+            {
+                con.Open();
+            }
+
+            SqlCommand cmd = transaction == null
                 ? new SqlCommand(sql, con)
-                : new SqlCommand(sql, con, _transaction);
+                : new SqlCommand(sql, con, transaction);
             cmd.CommandType = CommandType.Text;
 
             foreach (SqlParameter param in parameters)
@@ -559,7 +683,8 @@ namespace Sanatana.EntityFramework.Batch.Commands.Merge
                     foreach (MappedProperty prop in outputProperties)
                     {
                         object value = datareader[prop.EfMappedName];
-                        Type propType = Nullable.GetUnderlyingType(prop.PropertyInfo.PropertyType) ?? prop.PropertyInfo.PropertyType;
+                        Type propType = Nullable.GetUnderlyingType(prop.PropertyInfo.PropertyType) 
+                            ?? prop.PropertyInfo.PropertyType;
                         value = value == null
                             ? null
                             : Convert.ChangeType(value, propType);

@@ -25,15 +25,9 @@ namespace Sanatana.EntityFramework.BatchSpecs
             [Test]
             public void then_it_returns_renamed_table_name()
             {
-                Stopwatch sw = Stopwatch.StartNew();
                 string tableName = SUT.GetTableName<SampleEntity>();
-                TimeSpan f1 = sw.Elapsed;
-                sw.Restart();
-
-                tableName = SUT.GetTableName<SampleEntity>();
-                TimeSpan f2 = sw.Elapsed;
                 
-                string expectedName = $"[{SampleDbContext.CUSTOM_SCHEMA}].[{SampleDbContext.SAMPLE_TABLE_NAME}]";
+                string expectedName = $"[{SampleDbContext.SAMPLE_TABLE_SCHEMA}].[{SampleDbContext.SAMPLE_TABLE_NAME}]";
                 Assert.AreEqual(expectedName, tableName);
             }
 
@@ -154,7 +148,7 @@ namespace Sanatana.EntityFramework.BatchSpecs
         }
 
         [TestFixture]
-        public class when_getting_ef_database_generated_keys : SpecsFor<SampleDbContext>
+        public class when_getting_ef_database_generated_props : SpecsFor<SampleDbContext>
             , INeedSampleDatabase
         {
             public SampleDbContext SampleDatabase { get; set; }
@@ -163,7 +157,7 @@ namespace Sanatana.EntityFramework.BatchSpecs
             public void then_it_returns_default_identity_names()
             {
                 //Invoke
-                List<string> actualKeyNames = SUT.GetDatabaseGeneratedOrComputedKeys<ParentEntity>();
+                List<string> actualKeyNames = SUT.GetDatabaseGeneratedProperties<ParentEntity>();
 
                 //Assert
                 actualKeyNames.ShouldNotBeNull();
@@ -178,7 +172,7 @@ namespace Sanatana.EntityFramework.BatchSpecs
             public void then_it_returns_attributed_identity_names()
             {
                 //Invoke
-                List<string> actualKeyNames = SUT.GetDatabaseGeneratedOrComputedKeys<AttributedIdDbGenerated>();
+                List<string> actualKeyNames = SUT.GetDatabaseGeneratedProperties<AttributedIdDbGenerated>();
 
                 //Assert
                 actualKeyNames.ShouldNotBeNull();
@@ -193,7 +187,7 @@ namespace Sanatana.EntityFramework.BatchSpecs
             public void then_it_returns_attributed_and_convention_names()
             {
                 //Invoke
-                List<string> actualKeyNames = SUT.GetDatabaseGeneratedOrComputedKeys<ConventionKeyDbGenerated>();
+                List<string> actualKeyNames = SUT.GetDatabaseGeneratedProperties<ConventionKeyDbGenerated>();
 
                 //Assert
                 actualKeyNames.ShouldNotBeNull();
@@ -209,7 +203,7 @@ namespace Sanatana.EntityFramework.BatchSpecs
             public void then_it_returns_renamed_computed_names()
             {
                 //Invoke
-                List<string> actualKeyNames = SUT.GetDatabaseGeneratedOrComputedKeys<RenamedColumnDbGenerated>();
+                List<string> actualKeyNames = SUT.GetDatabaseGeneratedProperties<RenamedColumnDbGenerated>();
 
                 //Assert
                 actualKeyNames.ShouldNotBeNull();
@@ -218,6 +212,31 @@ namespace Sanatana.EntityFramework.BatchSpecs
                     SampleDbContext.RENAMED_DB_GENERATED_COLUMN_NAME,
                 };
                 actualKeyNames.SequenceEqual(expectedKeyNames)
+                    .ShouldBeTrue("Expected keys list do not match");
+            }
+        }
+
+
+        [TestFixture]
+        public class when_getting_ef_mapped_properties : SpecsFor<SampleDbContext>
+            , INeedSampleDatabase
+        {
+            public SampleDbContext SampleDatabase { get; set; }
+
+            [Test]
+            public void then_excludes_all_unmapped_properties()
+            {
+                //Invoke
+                List<string> actualMappedNames = SUT.GetAllMappedProperties<WithSomePropsUnmapped>();
+
+                //Assert
+                actualMappedNames.ShouldNotBeNull();
+                List<string> expectedKeyNames = new List<string> {
+                    nameof(WithSomePropsUnmapped.Id),
+                    nameof(WithSomePropsUnmapped.MappedProp1),
+                    nameof(WithSomePropsUnmapped.MappedProp2)
+                };
+                actualMappedNames.SequenceEqual(expectedKeyNames)
                     .ShouldBeTrue("Expected keys list do not match");
             }
         }
