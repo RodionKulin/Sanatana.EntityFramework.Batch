@@ -60,6 +60,11 @@ namespace Sanatana.EntityFramework.Batch.Commands
         //methods
         public virtual int Execute(List<TEntity> entities)
         {
+            if(entities.Count == 0)
+            {
+                return 0;
+            }
+
             StringBuilder sqlBuilder = ContructInsertManyCommand();
             SqlParameter[] parameters = ConstructParametersAndValues(entities, sqlBuilder);
             string command = sqlBuilder.ToString();
@@ -77,6 +82,11 @@ namespace Sanatana.EntityFramework.Batch.Commands
 
         public virtual async Task<int> ExecuteAsync(List<TEntity> entities)
         {
+            if (entities.Count == 0)
+            {
+                return 0;
+            }
+
             StringBuilder sqlBuilder = ContructInsertManyCommand();
             SqlParameter[] parameters = ConstructParametersAndValues(entities, sqlBuilder);
             string command = sqlBuilder.ToString();
@@ -240,12 +250,9 @@ namespace Sanatana.EntityFramework.Batch.Commands
             List<MappedProperty> outputProperties = Output.GetSelectedFlat();
             int entityIndex = 0;
 
-            //throw read exception message and throw it
-            if (!datareader.HasRows)
-            {
-                datareader.Read();
-            }
-
+            //will read all if any rows returned 
+            //will return false is no rows returned
+            //will throw exception message if exception produced by SQL
             while (datareader.Read())
             {
                 TEntity entity = entities[entityIndex];
@@ -262,7 +269,6 @@ namespace Sanatana.EntityFramework.Batch.Commands
                 }
             }
 
-            datareader.Close();
             return entityIndex;
         }
     }

@@ -265,7 +265,6 @@ namespace Sanatana.EntityFramework.Batch.Commands.Merge
 
 
 
-
         //parameters
         protected virtual SqlParameter[] ConstructParameterValues(List<TEntity> entities)
         {
@@ -312,13 +311,13 @@ namespace Sanatana.EntityFramework.Batch.Commands.Merge
                 : ConstructHeadValues(entities);
 
             //on
-            if (_mergeType != MergeType.Insert)
+            if (_mergeType == MergeType.Insert)
             {
-                ConstructOn(sql);
+                sql.AppendFormat(" ON 1 = 0 ");
             }
             else
             {
-                sql.AppendFormat(" ON 1 = 0 ");
+                ConstructOn(sql);
             }
 
             //merge update
@@ -671,29 +670,28 @@ namespace Sanatana.EntityFramework.Batch.Commands.Merge
             List<MappedProperty> outputProperties = Output.GetSelectedFlat();
             int changes = 0;
 
-            if (datareader.HasRows)
+            //will read all if any rows returned 
+            //will return false is no rows returned
+            //will throw exception message if exception produced by SQL
+            while (datareader.Read())
             {
-                while (datareader.Read())
+                changes++;
+
+                int sourceRowId = (int)datareader[SOURCE_ID_COLUMN_NAME];
+                TEntity entity = entities[sourceRowId];
+
+                foreach (MappedProperty prop in outputProperties)
                 {
-                    changes++;
-
-                    int sourceRowId = (int)datareader[SOURCE_ID_COLUMN_NAME];
-                    TEntity entity = entities[sourceRowId];
-
-                    foreach (MappedProperty prop in outputProperties)
-                    {
-                        object value = datareader[prop.EfMappedName];
-                        Type propType = Nullable.GetUnderlyingType(prop.PropertyInfo.PropertyType) 
-                            ?? prop.PropertyInfo.PropertyType;
-                        value = value == null
-                            ? null
-                            : Convert.ChangeType(value, propType);
-                        prop.PropertyInfo.SetValue(entity, value);
-                    }
+                    object value = datareader[prop.EfMappedName];
+                    Type propType = Nullable.GetUnderlyingType(prop.PropertyInfo.PropertyType)
+                        ?? prop.PropertyInfo.PropertyType;
+                    value = value == null
+                        ? null
+                        : Convert.ChangeType(value, propType);
+                    prop.PropertyInfo.SetValue(entity, value);
                 }
             }
 
-            datareader.Close();
             return changes;
         }
     }

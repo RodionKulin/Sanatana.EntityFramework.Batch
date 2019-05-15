@@ -111,6 +111,38 @@ namespace Sanatana.EntityFramework.BatchSpecs
         }
 
         [TestFixture]
+        public class when_merge_delete_uses_output : SpecsFor<Repository>
+           , INeedSampleDatabase
+        {
+            public SampleDbContext SampleDatabase { get; set; }
+
+            [Test]
+            public void then_merge_output_no_ids()
+            {
+                var entities = new List<SampleEntity>();
+                for (int i = 0; i < 15; i++)
+                {
+                    entities.Add(new SampleEntity
+                    {
+                        GuidNullableProperty = null,
+                        DateProperty = DateTime.UtcNow,
+                        GuidProperty = Guid.NewGuid()
+                    });
+                }
+
+                MergeCommand<SampleEntity> command = SUT.Merge<SampleEntity>(entities);
+                command.Compare.IncludeProperty(x => x.Id);
+                command.Output.IncludeProperty(x => x.Id);
+                int changes = command.Execute(MergeType.DeleteMatched);
+
+                //Assert
+                changes.ShouldEqual(0);
+                entities.ForEach(
+                    (entity) => entity.Id.ShouldEqual(0));
+            }
+        }
+
+        [TestFixture]
         public class when_merge_updates_multiple_entities : SpecsFor<Repository>
            , INeedSampleDatabase
         {
